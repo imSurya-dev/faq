@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { FaChevronDown, FaChevronUp, FaSearch } from "react-icons/fa";
+import { FaChevronDown, FaChevronUp, FaSearch, FaSpinner } from "react-icons/fa";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 interface FAQItem {
@@ -126,12 +126,12 @@ export default function Faq() {
   const pathname = usePathname();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [expandedIndexes, setExpandedIndexes] = useState<number[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const search = searchParams.get("search");
-    if (search) {
-      setSearchTerm(search);
-    }
+    const search = searchParams.get("search") || "";
+    setSearchTerm(search);
+    setIsLoading(false);
   }, [searchParams]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -139,7 +139,11 @@ export default function Faq() {
     setSearchTerm(value);
 
     const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set("search", value);
+    if (value) {
+      newSearchParams.set("search", value);
+    } else {
+      newSearchParams.delete("search");
+    }
     router.push(`${pathname}?${newSearchParams.toString()}`);
   };
 
@@ -161,6 +165,23 @@ export default function Faq() {
 
   const filteredFaqs = faqData.filter((faq) => faq.question.toLowerCase().includes(searchTerm.toLowerCase()));
 
+  if (isLoading) {
+    return (
+      <section className="py-10 md:py-20 mt-24 md:mt-20 text-primary-500">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-center mb-10 text-center">
+            <h2 className="text-2xl md:text-3xl section-heading">Frequently asked questions</h2>
+          </div>
+          <div className="w-full xl:w-3/4 mx-auto">
+            <div className="flex justify-center p-4">
+              <FaSpinner className="animate-spin text-4xl" />
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-10 md:py-20 mt-24 md:mt-20 text-primary-500">
       <div className="container mx-auto px-4">
@@ -168,12 +189,12 @@ export default function Faq() {
           <h2 className="text-2xl md:text-3xl section-heading">Frequently asked questions</h2>
         </div>
         <div className="w-full xl:w-3/4 mx-auto">
-          <div className="flex justify-between mb-6">
-            <div className="relative w-full sm:w-80">
+          <div className="flex flex-col sm:flex-row justify-between mb-6">
+            <div className="relative w-full sm:w-80 mb-4 sm:mb-0">
               <input type="text" placeholder="Search..." className="p-3 pl-10 border rounded-lg w-full" value={searchTerm} onChange={handleSearchChange} />
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
-            <div className="flex space-x-2">
+            <div className="flex justify-center sm:justify-start space-x-2">
               <button className="p-3 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600" onClick={() => toggleAll(true)}>
                 Expand All
               </button>
