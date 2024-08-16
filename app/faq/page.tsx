@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaChevronDown, FaChevronUp, FaSearch } from "react-icons/fa";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 interface FAQItem {
   question: string;
@@ -120,9 +121,27 @@ const faqData: FAQItem[] = [
 ];
 
 export default function Faq() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [expandedIndexes, setExpandedIndexes] = useState<number[]>([]);
+
+  useEffect(() => {
+    const search = searchParams.get("search");
+    if (search) {
+      setSearchTerm(search);
+    }
+  }, [searchParams]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set("search", value);
+    router.push(`${pathname}?${newSearchParams.toString()}`);
+  };
 
   const toggleFaq = (index: number) => {
     if (expandedIndexes.includes(index)) {
@@ -134,9 +153,9 @@ export default function Faq() {
 
   const toggleAll = (expand: boolean) => {
     if (expand) {
-      setExpandedIndexes(faqData.map((_, index) => index)); // Expand all
+      setExpandedIndexes(faqData.map((_, index) => index));
     } else {
-      setExpandedIndexes([]); // Collapse all
+      setExpandedIndexes([]);
     }
   };
 
@@ -151,7 +170,7 @@ export default function Faq() {
         <div className="w-full xl:w-3/4 mx-auto">
           <div className="flex justify-between mb-6">
             <div className="relative w-full sm:w-80">
-              <input type="text" placeholder="Search..." className="p-3 pl-10 border rounded-lg w-full" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <input type="text" placeholder="Search..." className="p-3 pl-10 border rounded-lg w-full" value={searchTerm} onChange={handleSearchChange} />
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
             <div className="flex space-x-2">
