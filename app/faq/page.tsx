@@ -122,9 +122,22 @@ const faqData: FAQItem[] = [
 export default function Faq() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [expandedIndexes, setExpandedIndexes] = useState<number[]>([]);
 
   const toggleFaq = (index: number) => {
-    setOpenIndex(openIndex === index ? null : index);
+    if (expandedIndexes.includes(index)) {
+      setExpandedIndexes(expandedIndexes.filter((i) => i !== index));
+    } else {
+      setExpandedIndexes([...expandedIndexes, index]);
+    }
+  };
+
+  const toggleAll = (expand: boolean) => {
+    if (expand) {
+      setExpandedIndexes(faqData.map((_, index) => index)); // Expand all
+    } else {
+      setExpandedIndexes([]); // Collapse all
+    }
   };
 
   const filteredFaqs = faqData.filter((faq) => faq.question.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -136,23 +149,31 @@ export default function Faq() {
           <h2 className="text-2xl md:text-3xl section-heading">Frequently asked questions</h2>
         </div>
         <div className="w-full xl:w-3/4 mx-auto">
-          <div className="flex justify-end">
-            <div className="relative mb-6 w-full sm:w-80">
+          <div className="flex justify-between mb-6">
+            <div className="relative w-full sm:w-80">
               <input type="text" placeholder="Search..." className="p-3 pl-10 border rounded-lg w-full" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
+            <div className="flex space-x-2">
+              <button className="p-3 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600" onClick={() => toggleAll(true)}>
+                Expand All
+              </button>
+              <button className="p-3 bg-red-500 text-white rounded-lg shadow hover:bg-red-600" onClick={() => toggleAll(false)}>
+                Collapse All
+              </button>
+            </div>
           </div>
-          <div className="bg-white shadow-lg rounded-lg">
+          <div className="bg-white shadow-xl rounded-lg">
             {filteredFaqs.length > 0 ? (
               filteredFaqs.map((faq, index) => (
                 <div key={index} className="mb-2">
                   <button onClick={() => toggleFaq(index)} className="flex justify-between items-center w-full text-left px-4 py-2 border-b">
                     <span className="text-lg">{faq.question}</span>
-                    {openIndex === index ? <FaChevronUp size={20} className="text-secondary-600 flex-shrink-0 ml-2" /> : <FaChevronDown size={20} className="text-secondary-600 flex-shrink-0 ml-2" />}
+                    {expandedIndexes.includes(index) ? <FaChevronUp size={20} className="text-secondary-600 flex-shrink-0 ml-2" /> : <FaChevronDown size={20} className="text-secondary-600 flex-shrink-0 ml-2" />}
                   </button>
-                  {openIndex === index && (
-                    <div className="p-4">
-                      <div className="text-lg font-semibold">{faq.answer}</div>
+                  {expandedIndexes.includes(index) && (
+                    <div className="p-4 bg-gray-50 border-t">
+                      <div className="text-lg font-semibold text-gray-700 leading-relaxed">{faq.answer}</div>
                     </div>
                   )}
                 </div>
